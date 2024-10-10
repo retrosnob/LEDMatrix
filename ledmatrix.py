@@ -1,15 +1,21 @@
 import pygame
 import sys
-import threading
-import queue
-import time
+import inspect
+
 
 class Matrix:
 
-    # Define a custom event
-    DRAW_PIXEL_EVENT = pygame.USEREVENT + 1
-
     def __init__(self, rows = 72, cols = 120):
+
+        if not callable('update'):
+            print('You must define a function called update. The matrix will call it repeatedly to get the changes to your matrix.')
+            sys.exit()
+
+        if not callable('start'):
+            print('You must define a function called start. The matrix will call it once to get the starting state of the matrix.')
+            sys.exit()
+
+
         self.rows = rows
         self.cols = cols
         self.matrix = [[(32, 32, 32) for c in range(cols)] for r in range(rows)]
@@ -54,59 +60,10 @@ class Matrix:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-
-# API thread function that processes the commands in the queue
-def api_thread(command_queue):
-    # Initialize Pygame
-    pygame.init()
-    screen = pygame.display.set_mode((640, 480))
-    pygame.display.set_caption("Pygame API Event Example")
-    WHITE = (255, 255, 255)
-
-    running = True
-    while running:
-        # Fill the screen with a white background
-        screen.fill(WHITE)
-
-        # Check for Pygame events (e.g., window close, custom events)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                command_queue.put({"action": "stop"})
-            
-            # Handle custom draw rectangle event
-            if event.type == DRAW_RECTANGLE_EVENT:
-                pygame.draw.rect(screen, event.color, event.rect)
-
-        # Update the screen
-        pygame.display.flip()
-
-        # Process any API calls in the command queue
-        try:
-            command = command_queue.get_nowait()  # Non-blocking queue check
-        except queue.Empty:
-            command = None
-
-        if command:
-            if command['action'] == "draw_rectangle":
-                # Create and post a custom event for drawing a rectangle
-                event = pygame.event.Event(DRAW_RECTANGLE_EVENT, {
-                    "rect": pygame.Rect(command['x'], command['y'], command['width'], command['height']),
-                    "color": command['color']
-                })
-                pygame.event.post(event)
-
-            elif command['action'] == "stop":
-                running = False
-
-        time.sleep(0.01)  # Small delay to avoid busy-waiting
-
-    pygame.quit()
-
-    def api_thread(self):
-        while True:
-            for event in api_event_queue:
-                pygame.event.post(pygame.event.Event(pygame.USEREVENT + 1, 'EVENT'))
+            # CALL TO FUNCTIONS DEFINED BY USER
+            update()
+            draw()
+            # *********************************
 
     def clear(self):
         for r in range(self.rows):
