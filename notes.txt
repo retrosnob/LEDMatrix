@@ -1,0 +1,34 @@
+Always stop by pressing the X.
+
+Only functions are clear and pixel to begin with.
+
+A pixel moving acros the matrix backwards and forwards.
+
+import ledmatrix
+
+
+matrix = ledmatrix.Matrix()
+x = -1
+y = matrix.HEIGHT // 2
+
+while True:
+    if x == -1:
+        dx = 1
+    elif x == matrix.WIDTH:
+        dx = -1
+    x += dx
+    matrix.clear()
+    matrix.pixel(x, y)
+
+When we press the X, what happens to the API thread? If the API thread is set as 
+a daemon thread, then it will terminate when the main thread terminates. So as long
+as the pygaem event loop runs on the main thread (as it must), then pressing the
+X should end all threads.
+
+What happens when an API call is made:
+
+This is called in the user's Python file:
+matrix.pixel(x, y)
+
+The function in the API module then puts an event on the Python event queue.
+
